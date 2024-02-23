@@ -3,19 +3,11 @@ function firefox {
 }
 
 
-function vip {
-    Start-Process "C:\VIP.CETRAINER"
-}
-
-
-
 function ip {
     Invoke-RestMethod -Uri "https://ifconfig.me" 
     Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias (Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1).InterfaceAlias | Select-Object IPAddress
 
 }
-
-
 
 function sysinfo {
     Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object Manufacturer, Model
@@ -94,7 +86,6 @@ This script provides custom functions and aliases for convenience.
 
 Available Commands:
 - firefox : Open Mozilla Firefox.
-- vip : Open VIP.CETRAINER.
 - ip : Get your public IP address.
 - sysinfo : Display system information.
 - admin : Run PowerShell as administrator.
