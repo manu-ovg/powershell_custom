@@ -18,7 +18,7 @@ This custom PowerShell script provides useful features and shortcuts to facilita
 ## How to Use
 
 1. Open terminal 
-2. Copy paste the PowerShell script by opening a console and using the command ``notepad $PROFILE``
+2. Copy paste the PowerShell script by opening a console and using the command ``notepad $PROFILE`` or ``New-Item -ItemType File -Path $PROFILE -Force``
 3. If you have some error remove ohmyposh or read : https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4
 
 ## Requirements
