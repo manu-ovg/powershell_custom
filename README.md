@@ -4,15 +4,60 @@ This custom PowerShell script provides useful features and shortcuts to facilita
 
 ## Included Features
 
-1. **firefox:** Opens Mozilla Firefox.
-2. **ip:** Retrieves your public and local IP addresses.
-3. **sysinfo:** Displays detailed system information.
-4. **wifi:** Displays information about the Wi-Fi adapter.
-5. **installed:** Lists installed programs.
-6. **admin, su, sudo:** Runs PowerShell as an administrator.
-7. **find-file, ff:** Searches for files with a specific name.
-8. **pslist:** Lists running processes.
-9. **oh-my-posh:** Initializes the console theme (ensure it is installed beforehand).
+App Launchers
+firefox — Opens Mozilla Firefox.
+
+edge — Opens Microsoft Edge.
+
+chrome — Opens Google Chrome.
+
+vscode — Opens Visual Studio Code.
+
+telegram — Opens Telegram Desktop.
+
+System & Network Info
+sysinfo — Displays detailed system information (OS, CPU, RAM, disk, GPU, motherboard).
+
+myip — Shows local and public IP addresses.
+
+wifiinfo — Displays Wi-Fi connection details and available networks.
+
+myos — A neofetch-like system info summary with colored box output.
+
+File & Process Management
+find-file or ff — Search for files by name recursively.
+
+fsearch — Search inside files for a text pattern recursively.
+
+pslist — Lists running processes, sorted by CPU or filtered by name.
+
+killproc — Kills all processes matching a name.
+
+Directory Navigation
+.. — Go up one directory.
+
+... — Go up three directories.
+
+.... — Go up four directories.
+
+..... — Go up five directories.
+
+desktop — Change directory to your Desktop folder.
+
+bureau — Change directory to the French equivalent Desktop folder.
+
+Utilities & Others
+docs — Opens the Documents folder in Explorer.
+
+dls — Opens the Downloads folder.
+
+desk — Opens the Desktop folder.
+
+admin, su, sudo — Run PowerShell as administrator.
+
+oh-my-posh — Loads your Oh My Posh theme if installed.
+
+
 
 
 ## How to Use
