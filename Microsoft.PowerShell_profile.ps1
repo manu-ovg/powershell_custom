@@ -1,17 +1,14 @@
-# --- Load Oh My Posh if available ---
-if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/refs/heads/main/themes/atomicBit.omp.json" | Invoke-Expression
-} else {
-    Write-Color "Oh My Posh not found. Skipping theme setup..." Yellow
-}
-
-# Load Oh My Posh theme
-oh-my-posh init pwsh --config "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/refs/heads/main/themes/atomicBit.omp.json" | Invoke-Expression
-
-# --- Helper for colored output ---
+# --- Helper for colored output (must be defined early) ---
 function Write-Color {
     param ($Text, $Color = "White")
     Write-Host $Text -ForegroundColor $Color
+}
+
+# --- Load Oh My Posh if available ---
+if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
+    oh-my-posh init pwsh --config "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/atomicBit.omp.json" | Invoke-Expression
+} else {
+    Write-Color "Oh My Posh not found. Skipping theme setup..." Yellow
 }
 
 # --- System Info ---
@@ -77,7 +74,7 @@ function wifiinfo {
     Write-Color "======================" Cyan
 }
 
-# --- File search ---
+# --- File Search ---
 function find-file {
     param (
         [string]$Name,
@@ -97,7 +94,7 @@ function find-file {
 }
 Set-Alias ff find-file
 
-# --- Process listing ---
+# --- Process List ---
 function pslist {
     param (
         [string]$Name
@@ -115,38 +112,7 @@ function pslist {
     Write-Color "=========================" Cyan
 }
 
-# --- Custom app launchers ---
-function firefox {
-    Start-Process "C:\Program Files\Mozilla Firefox\firefox.exe"
-}
-
-function edge {
-    Start-Process "msedge.exe"
-}
-
-function chrome {
-    Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe"
-}
-
-function vscode {
-    Start-Process "C:\Users\$env:USERNAME\AppData\Local\Programs\Microsoft VS Code\Code.exe"
-}
-
-function telegram {
-    $path = "$env:USERPROFILE\AppData\Roaming\Telegram Desktop\Telegram.exe"
-    if (Test-Path $path) {
-        Start-Process $path
-    } else {
-        Write-Host "Telegram not found at $path" -ForegroundColor Yellow
-    }
-}
-
-
-function docs { explorer "$HOME\Documents" }
-function dls { explorer "$HOME\Downloads" }
-function desk { explorer "$HOME\Desktop" }
-
-# --- Fixed fsearch function ---
+# --- Text Search in Files ---
 function fsearch {
     param(
         [string]$pattern,
@@ -155,7 +121,6 @@ function fsearch {
     Write-Host "Searching for '$pattern' in files under $path"
 
     $results = @()
-
     $files = Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue
 
     foreach ($file in $files) {
@@ -172,10 +137,7 @@ function fsearch {
                     }
                 }
             }
-        }
-        catch {
-            # Skip files that cannot be read
-        }
+        } catch { }
     }
 
     if ($results.Count -gt 0) {
@@ -185,18 +147,14 @@ function fsearch {
     }
 }
 
-# --- Kill process by name ---
+# --- Kill Process ---
 function killproc {
     param([string]$name)
     Get-Process -Name $name -ErrorAction SilentlyContinue | Stop-Process -Force
     Write-Host "Killed all processes named $name"
 }
 
-
-# Alias for clear screen
-Set-Alias c Clear-Host
-
-# Helper function to write colored text with padding
+# --- OS Info (Fancy Box) ---
 function Write-ColorLine {
     param(
         [string]$label,
@@ -211,78 +169,68 @@ function Write-ColorLine {
     Write-Host ": $value" -ForegroundColor $valueColor
 }
 
-# Function to display system info in a styled box
 function myos {
-    # Get OS info
     $os = Get-CimInstance Win32_OperatingSystem
-    $osName = $os.Caption
-    $osVersion = $os.Version
-
-    # Get CPU info
     $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
-    $cpuName = $cpu.Name.Trim()
-
-    # Get GPU info
     $gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
-    $gpuName = $gpu.Name.Trim()
-
-    # Get RAM info (Total Physical Memory in GB)
     $ramBytes = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
-    $ramGB = [math]::Round($ramBytes / 1GB, 2)
-
-    # Get Disk info (C: drive total and free space)
     $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
-    $diskSizeGB = [math]::Round($disk.Size / 1GB, 2)
-    $diskFreeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
-
-    # Get system uptime
     $uptimeSpan = (Get-Date) - $os.LastBootUpTime
-    $uptime = "{0}d {1}h {2}m" -f $uptimeSpan.Days, $uptimeSpan.Hours, $uptimeSpan.Minutes
 
-    # Get IP address (IPv4)
+    $user = $env:USERNAME
+    $computer = $env:COMPUTERNAME
     $ip = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias 'Wi-Fi','Ethernet' -ErrorAction SilentlyContinue |
            Where-Object { $_.IPAddress -notlike '169.*' -and $_.IPAddress -ne '127.0.0.1' } |
            Select-Object -First 1).IPAddress
 
-    # User and Computer name
-    $user = $env:USERNAME
-    $computer = $env:COMPUTERNAME
-
-    # Output box width based on longest line (adjust if needed)
-    $boxWidth = 31
-
-    # Print header with color
-    Write-Host ("╭" + ("─" * $boxWidth) + "╮") -ForegroundColor Green
-    Write-Host ("│" + " System Info".PadRight($boxWidth) + "│") -ForegroundColor Green
-    Write-Host ("├" + ("─" * $boxWidth) + "┤") -ForegroundColor Green
-
-    # Print each line with label and value in different colors
+    Write-Host ("╭" + ("─" * 31) + "╮") -ForegroundColor Green
+    Write-Host ("│" + " System Info".PadRight(31) + "│") -ForegroundColor Green
+    Write-Host ("├" + ("─" * 31) + "┤") -ForegroundColor Green
     Write-ColorLine "User" "$user@$computer"
-    Write-ColorLine "OS" "$osName ($osVersion)"
-    Write-ColorLine "CPU" $cpuName
-    Write-ColorLine "GPU" $gpuName
-    Write-ColorLine "RAM" "$ramGB GB"
-    Write-ColorLine "Disk (C:)" "$diskFreeGB GB free / $diskSizeGB GB total"
-    Write-ColorLine "Uptime" $uptime
+    Write-ColorLine "OS" "$($os.Caption) ($($os.Version))"
+    Write-ColorLine "CPU" $cpu.Name.Trim()
+    Write-ColorLine "GPU" $gpu.Name.Trim()
+    Write-ColorLine "RAM" ("{0} GB" -f [math]::Round($ramBytes / 1GB, 2))
+    Write-ColorLine "Disk (C:)" ("{0} free / {1} total GB" -f [math]::Round($disk.FreeSpace / 1GB, 2), [math]::Round($disk.Size / 1GB, 2))
+    Write-ColorLine "Uptime" ("{0}d {1}h {2}m" -f $uptimeSpan.Days, $uptimeSpan.Hours, $uptimeSpan.Minutes)
     Write-ColorLine "IP" $ip
-
-    # Footer
-    Write-Host ("╰" + ("─" * $boxWidth) + "╯") -ForegroundColor Green
+    Write-Host ("╰" + ("─" * 31) + "╯") -ForegroundColor Green
 }
 
-
-
-# Aliases for directory navigation
+# --- Aliases & App Launchers ---
 Set-Alias .. 'Set-Location ..'
-
 function ... { Set-Location ../../.. }
 function .... { Set-Location ../../../.. }
 function ..... { Set-Location ../../../../.. }
 
-# Aliases/functions for Desktop folder navigation (English + French)
+Set-Alias c Clear-Host
+Set-Alias curl Invoke-WebRequest
+Set-Alias wget Invoke-WebRequest
+Set-Alias ff find-file
+
 function desktop { Set-Location "$HOME\Desktop" }
 function bureau { Set-Location "$HOME\Bureau" }
+function docs { explorer "$HOME\Documents" }
+function dls { explorer "$HOME\Downloads" }
+function desk { explorer "$HOME\Desktop" }
 
+function firefox { Start-Process "C:\Program Files\Mozilla Firefox\firefox.exe" }
+function edge { Start-Process "msedge.exe" }
+function chrome { Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" }
+function vscode { Start-Process "C:\Users\$env:USERNAME\AppData\Local\Programs\Microsoft VS Code\Code.exe" }
+function telegram {
+    $path = "$env:USERPROFILE\AppData\Roaming\Telegram Desktop\Telegram.exe"
+    if (Test-Path $path) {
+        Start-Process $path
+    } else {
+        Write-Host "Telegram not found at $path" -ForegroundColor Yellow
+    }
+}
+function obs {
+    Start-Process -FilePath "C:\Program Files\obs-studio\bin\64bit\obs64.exe" -WorkingDirectory "C:\Program Files\obs-studio\bin\64bit"
+}
+
+# --- Misc ---
 function np {
     param(
         [string]$filename,
@@ -295,32 +243,15 @@ function np {
         return
     }
 
-    # Join all text parts with space
     $text = $textParts -join ' '
-
-    # Save the text (if any) to the file
     Set-Content -Path $filename -Value $text -Encoding UTF8
-
-    # Open the file in Notepad
     Start-Process notepad.exe $filename
 }
 
-
-
-# Reload profile function
 function reload {
     . $PROFILE
     Write-Host "Profile reloaded." -ForegroundColor Green
 }
-
-function obs {
-    Start-Process -FilePath "C:\Program Files\obs-studio\bin\64bit\obs64.exe" -WorkingDirectory "C:\Program Files\obs-studio\bin\64bit"
-}
-
-
-# Aliases for curl and wget using Invoke-WebRequest
-Set-Alias curl Invoke-WebRequest
-Set-Alias wget Invoke-WebRequest
 
 function proj {
     $path = "C:\Users\$env:USERNAME\Projects"
@@ -340,17 +271,9 @@ function web {
     }
 }
 
-function yt {
-    Start-Process "https://www.youtube.com"
-}
-
-function fb {
-    Start-Process "https://www.facebook.com"
-}
-
-function insta {
-    Start-Process "https://www.instagram.com"
-}
+function yt { Start-Process "https://www.youtube.com" }
+function fb { Start-Process "https://www.facebook.com" }
+function insta { Start-Process "https://www.instagram.com" }
 
 function google {
     param (
@@ -359,17 +282,12 @@ function google {
     )
 
     if ($query.Count -eq 0) {
-        # No arguments: open Google homepage
         Start-Process "https://www.google.com"
     } else {
-        # Join all arguments with + to form search query
         $searchTerm = [uri]::EscapeDataString(($query -join ' '))
-        $url = "https://www.google.com/search?q=$searchTerm"
-        Start-Process $url
+        Start-Process "https://www.google.com/search?q=$searchTerm"
     }
 }
-
-
 
 function codeproj {
     param(
@@ -381,7 +299,6 @@ function codeproj {
         return
     }
 
-    # If projectName has an extension like .py, warn and remove it
     if ($projectName -match '\.[^\\/:*?"<>|]+$') {
         Write-Host "Warning: Project names should not have file extensions. Removing extension." -ForegroundColor Yellow
         $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectName)
@@ -395,8 +312,7 @@ function codeproj {
             try {
                 New-Item -ItemType Directory -Path $projectPath -ErrorAction Stop | Out-Null
                 Write-Host "Project folder created at '$projectPath'" -ForegroundColor Green
-            }
-            catch {
+            } catch {
                 Write-Host "Failed to create project folder: $_" -ForegroundColor Red
                 return
             }
@@ -408,7 +324,6 @@ function codeproj {
 
     code $projectPath
 }
-
 
 function sudo {
     param(
