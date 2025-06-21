@@ -133,8 +133,14 @@ function vscode {
 }
 
 function telegram {
-    Start-Process "C:\Users\$env:USERNAME\AppData\Roaming\Telegram Desktop\Telegram.exe"
+    $path = "$env:USERPROFILE\AppData\Roaming\Telegram Desktop\Telegram.exe"
+    if (Test-Path $path) {
+        Start-Process $path
+    } else {
+        Write-Host "Telegram not found at $path" -ForegroundColor Yellow
+    }
 }
+
 
 function docs { explorer "$HOME\Documents" }
 function dls { explorer "$HOME\Downloads" }
@@ -276,3 +282,140 @@ function ..... { Set-Location ../../../../.. }
 # Aliases/functions for Desktop folder navigation (English + French)
 function desktop { Set-Location "$HOME\Desktop" }
 function bureau { Set-Location "$HOME\Bureau" }
+
+function np {
+    param(
+        [string]$filename,
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$textParts
+    )
+
+    if (-not $filename) {
+        Write-Host "Usage: np <filename> [text]" -ForegroundColor Yellow
+        return
+    }
+
+    # Join all text parts with space
+    $text = $textParts -join ' '
+
+    # Save the text (if any) to the file
+    Set-Content -Path $filename -Value $text -Encoding UTF8
+
+    # Open the file in Notepad
+    Start-Process notepad.exe $filename
+}
+
+
+
+# Reload profile function
+function reload {
+    . $PROFILE
+    Write-Host "Profile reloaded." -ForegroundColor Green
+}
+
+function obs {
+    Start-Process -FilePath "C:\Program Files\obs-studio\bin\64bit\obs64.exe" -WorkingDirectory "C:\Program Files\obs-studio\bin\64bit"
+}
+
+
+# Aliases for curl and wget using Invoke-WebRequest
+Set-Alias curl Invoke-WebRequest
+Set-Alias wget Invoke-WebRequest
+
+function proj {
+    $path = "C:\Users\$env:USERNAME\Projects"
+    if (Test-Path $path) {
+        Set-Location $path
+    } else {
+        Write-Host "Folder '$path' does not exist." -ForegroundColor Yellow
+    }
+}
+
+function web {
+    $path = "C:\Users\$env:USERNAME\Websites"
+    if (Test-Path $path) {
+        Set-Location $path
+    } else {
+        Write-Host "Folder '$path' does not exist." -ForegroundColor Yellow
+    }
+}
+
+function yt {
+    Start-Process "https://www.youtube.com"
+}
+
+function fb {
+    Start-Process "https://www.facebook.com"
+}
+
+function insta {
+    Start-Process "https://www.instagram.com"
+}
+
+function google {
+    param (
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$query
+    )
+
+    if ($query.Count -eq 0) {
+        # No arguments: open Google homepage
+        Start-Process "https://www.google.com"
+    } else {
+        # Join all arguments with + to form search query
+        $searchTerm = [uri]::EscapeDataString(($query -join ' '))
+        $url = "https://www.google.com/search?q=$searchTerm"
+        Start-Process $url
+    }
+}
+
+
+
+function codeproj {
+    param(
+        [string]$projectName
+    )
+
+    if (-not $projectName) {
+        Write-Host "Usage: codeproj <projectName>" -ForegroundColor Yellow
+        return
+    }
+
+    # If projectName has an extension like .py, warn and remove it
+    if ($projectName -match '\.[^\\/:*?"<>|]+$') {
+        Write-Host "Warning: Project names should not have file extensions. Removing extension." -ForegroundColor Yellow
+        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectName)
+    }
+
+    $projectPath = "C:\Users\$env:USERNAME\Projects\$projectName"
+
+    if (-not (Test-Path $projectPath)) {
+        $create = Read-Host "Project '$projectName' does not exist. Create it? (Y/N)"
+        if ($create -match '^[Yy]') {
+            try {
+                New-Item -ItemType Directory -Path $projectPath -ErrorAction Stop | Out-Null
+                Write-Host "Project folder created at '$projectPath'" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Failed to create project folder: $_" -ForegroundColor Red
+                return
+            }
+        } else {
+            Write-Host "Operation cancelled." -ForegroundColor Yellow
+            return
+        }
+    }
+
+    code $projectPath
+}
+
+
+function sudo {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$Command
+    )
+
+    $joined = $Command -join ' '
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", "& { . `$PROFILE; $joined; pause }" -Verb RunAs
+}
